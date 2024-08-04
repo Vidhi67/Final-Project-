@@ -6,10 +6,10 @@ import random
 
 ##### Adjust this section as needed #####
 model_path = './UNetW_final.h5'
-Training_data = r'../Preprocessing/images/'
+Training_data = r'../Preprocessing/preprocessed_img/'
 save_dir = r'./Masks/'
 batch_size = 32 # Adjust batch size according to your system's memory
-num_samples = 1000  # Number of random images to process (1000 taken as test case)
+#num_samples = 1000  # Number of random images to process (1000 taken as test case)
 #########################################
 
 # Create save directory if it doesn't exist
@@ -22,8 +22,8 @@ height = 512
 
 # Prepare training data
 training_data = [x for x in sorted(os.listdir(Training_data))]
-#num_images = len(training_data)
-random_samples = random.sample(training_data, min(num_samples, len(training_data)))
+num_images = len(training_data)
+#random_samples = random.sample(training_data, min(num_samples, len(training_data)))
 
 # Function to load images in batches
 def load_batch(batch_files, directory):
@@ -37,8 +37,8 @@ def load_batch(batch_files, directory):
     return np.array(batch_data).reshape(len(batch_data), width, height, 1)
 
 # Process images in batches
-for i in range(0, len(random_samples), batch_size):
-    batch_files = random_samples[i:i + batch_size]
+for i in range(0, num_images, batch_size):
+    batch_files = training_data[i:i + batch_size]
     x_train_data = load_batch(batch_files, Training_data)
     
     # Normalize data if needed

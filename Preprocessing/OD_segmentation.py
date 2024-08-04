@@ -177,7 +177,7 @@ def main():
     model_path = '../YOLOv8/runs/segment/train12/weights/last.pt'
     model = YOLO(model_path)
 
-    file_path_img = '../Preprocessing/preprocessed_img/'
+    file_path_img = './preprocessed_img/'
     save_path = './ROI_Images/'
 
     # Base path for datasets

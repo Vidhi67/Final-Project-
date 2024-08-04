@@ -49,7 +49,7 @@ def process_and_save_images(input_path_folder, output_path_folder, output_size):
         os.makedirs(output_path_folder)
 
     # Loop through subdirectories (0, 1, 2, 3, 4, 5)
-    for subfolder in ['1', '2', '3', '4', '5']:
+    for subfolder in ['0', '1', '2', '3', '4', '5']:
         subfolder_path = os.path.join(input_path_folder, subfolder)
         if not os.path.exists(subfolder_path):
             print(f"Subfolder {subfolder} does not exist. Skipping.")

@@ -7,21 +7,19 @@
 from ultralytics import YOLO
 import torch
 
-#def clear_gpu_memory():
+# def clear_gpu_memory():
 #     torch.cuda.empty_cache()
 #     torch.cuda.synchronize()
-
-#Change paths as needed
+# checkpoint_path = './runs/segment/train12/weights/last.pt'
+#
+# Load the model from the checkpoint
+# model = YOLO(checkpoint_path)
 
 DATA_DIR = './data/'
 
 model = YOLO('yolov8x-seg.pt')
-#checkpoint_path = './runs/segment/train12/weights/last.pt'
 
-# Load the model from the checkpoint
-#model = YOLO(model)
+model.train(data='./config.yaml', epochs=100, imgsz=640, batch=32)
 
-model.train(data='./config.yaml', epochs=100, imgsz=512, batch=32)
-
-#clear_gpu_memory()
+# clear_gpu_memory()
 

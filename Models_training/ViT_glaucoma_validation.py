@@ -10,16 +10,16 @@ from tqdm import tqdm
 
 from data_utils import GlaucomaDataset, test_transform
 
-####### Adjust this section as needed ############################
-model_save_directory = './model/ViT_RG_ROI'    
-img_folder = '../Preprocessing/ROI_Images' 
+# # ####### Adjust this section as needed ############################
+model_save_directory = './model/ViT_RG_ROI'
+img_folder = '../Preprocessing/ROI_Images'
 test_df = pd.read_csv('../Datasets/glaucoma_masks_test.csv')
 
 # Uncomment to validate ViT without ROI
-#model_save_directory = './model/ViT_RG_NO_ROI'  
-#img_folder = '../Preprocessing/preprocessed_img' 
-#test_df = pd.read_csv('../Datasets/glaucoma_no_mask_test.csv')
-#################################################################
+# model_save_directory = './model/ViT_RG_NO_ROI'
+# img_folder = '../Preprocessing/preprocessed_img'
+# test_df = pd.read_csv('../Datasets/glaucoma_no_mask_test.csv')
+# ################################################################
 
 # Load test data
 test_dataset = GlaucomaDataset(dataframe=test_df, img_folder=img_folder, transform=test_transform)

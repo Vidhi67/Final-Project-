@@ -20,6 +20,21 @@ def test_transform():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
+def train_transform_minority(image):
+    # Define the composed transformation
+    transform = transforms.Compose([
+        transforms.Resize((512, 512), interpolation=transforms.InterpolationMode.BICUBIC),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(30),
+        autoaugment.AutoAugment(autoaugment.AutoAugmentPolicy.IMAGENET),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+
+    # Apply the composed transformation to the image
+    return transform(image)
+
+
 class GlaucomaDataset(Dataset):
     """
     Args:

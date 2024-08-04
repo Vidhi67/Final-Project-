@@ -7,8 +7,9 @@ from torchvision.models import vit_l_16, ViT_L_16_Weights
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import re
+from PIL import Image
 
-from data_utils import GlaucomaDataset, train_transform, test_transform
+from data_utils import GlaucomaDataset, train_transform, test_transform, train_transform_minority
 
 ################ Adjust this section as needed ################
 model_name = "ViT_10_ROI"
@@ -18,19 +19,47 @@ train_df = pd.read_csv('../Datasets/10_features_masks_train.csv')
 test_df = pd.read_csv('../Datasets/10_features_masks_test.csv')
 
 # Unmute to train ViT without ROI
-#model_name = "ViT_10_NO_ROI"
-#model_save_directory = f'./model/{model_name}'
-#img_folder = '../Preprocessing/preprocessed_img' 
-#train_df = pd.read_csv('../Datasets/10_features_no_mask_train.csv')
-#test_df = pd.read_csv('../Datasets/10_features_no_mask_test.csv')
-###############################################################
+# model_name = "ViT_10_NO_ROI"
+# model_save_directory = f'./model/{model_name}'
+# img_folder = '../Preprocessing/preprocessed_img'
+# train_df = pd.read_csv('../Datasets/10_features_no_mask_train.csv')
+# test_df = pd.read_csv('../Datasets/10_features_no_mask_test.csv')
+# ##############################################################
 
 if not os.path.exists(model_save_directory):
     os.makedirs(model_save_directory)
 
 extra_features = ['ANRS', 'ANRI', 'RNFLDS', 'RNFLDI', 'BCLVS', 'BCLVI', 'NVT', 'DH', 'LD', 'LC']
 
-train_dataset = GlaucomaDataset(dataframe=train_df, img_folder=img_folder, transform=train_transform, extra_features=extra_features)
+# Calculate the number of instances in each class
+num_majority = max(len(train_df[train_df['Final Label'] == 0]), len(train_df[train_df['Final Label'] == 1]))
+num_minority = min(len(train_df[train_df['Final Label'] == 0]), len(train_df[train_df['Final Label'] == 1]))
+num_to_augment = num_majority - num_minority
+
+# Create a separate DataFrame for the minority class
+minority_df = train_df[train_df['Final Label'] == 1]
+
+# Augment the minority class to match the majority class
+augmented_data = []
+
+for i in range(num_to_augment):
+    # Select a random sample from the minority class
+    sample = minority_df.sample(1).iloc[0]
+
+    # Apply data augmentation to the sample
+    img_path = os.path.join(img_folder, sample['Eye ID'])
+    image = Image.open(img_path).convert("RGB")
+    augmented_image = train_transform_minority(image)  # Apply minority class augmentation
+
+    # Append the augmented data to the list
+    augmented_data.append((augmented_image, sample['Final Label']))
+
+augmented_df = pd.DataFrame(augmented_data, columns=['Eye ID', 'Final Label'])
+
+# Combine the original minority data with the augmented data
+balanced_df = pd.concat([train_df, augmented_df], ignore_index=True)
+
+train_dataset = GlaucomaDataset(dataframe=balanced_df, img_folder=img_folder, transform=train_transform, extra_features=extra_features)
 test_dataset = GlaucomaDataset(dataframe=test_df, img_folder=img_folder, transform=test_transform, extra_features=extra_features)
 
 train_loader = DataLoader(train_dataset, batch_size=11, shuffle=True, num_workers=8)

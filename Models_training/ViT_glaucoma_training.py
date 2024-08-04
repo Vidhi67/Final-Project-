@@ -8,28 +8,56 @@ from torch.utils.data import DataLoader
 from torch.cuda.amp import GradScaler, autocast
 from tqdm import tqdm
 import re
+from PIL import Image
 
 
-from data_utils import GlaucomaDataset, train_transform
+from data_utils import GlaucomaDataset, train_transform , train_transform_minority
 
-################ Adjust this section as needed ################
-#model_name = "ViT_RG_ROI"
-#model_save_directory = f'./model/{model_name}'   #GIVE EXACT PATHS
-#img_folder = '../Preprocessing/ROI_Images'        #For this check the OD_segmentation.py file and give path
-#train_df = pd.read_csv('../Datasets/glaucoma_masks_train.csv')
+# ############### Adjust this section as needed ################
+model_name = "ViT_RG_ROI"
+model_save_directory = f'./model/{model_name}'   # GIVE EXACT PATHS
+img_folder = '../Preprocessing/ROI_Images'        # For this check the OD_segmentation.py file and give path
+train_df = pd.read_csv('../Datasets/glaucoma_masks_train.csv')
 
-# Unmute to train ViT without ROI
-model_name = "ViT_RG_NO_ROI"
-model_save_directory = f'./model/{model_name}'
-img_folder = '../Preprocessing/preprocessed_img' 
-train_df = pd.read_csv('../Datasets/glaucoma_no_mask_train.csv')
+# # Unmute to train ViT without ROI
+# model_name = "ViT_RG_NO_ROI"
+# model_save_directory = f'./model/{model_name}'
+# img_folder = '../Preprocessing/preprocessed_img'
+# train_df = pd.read_csv('../Datasets/glaucoma_no_mask_train.csv')
 ###############################################################
 
 if not os.path.exists(model_save_directory):
     os.makedirs(model_save_directory)
 
+# Calculate the number of instances in each class
+num_majority = max(len(train_df[train_df['Final Label'] == 0]), len(train_df[train_df['Final Label'] == 1]))
+num_minority = min(len(train_df[train_df['Final Label'] == 0]), len(train_df[train_df['Final Label'] == 1]))
+num_to_augment = num_majority - num_minority
 
-train_dataset = GlaucomaDataset(dataframe=train_df, img_folder=img_folder, transform=train_transform, extra_features=None)
+# Create a separate DataFrame for the minority class
+minority_df = train_df[train_df['Final Label'] == 1]
+
+# Augment the minority class to match the majority class
+augmented_data = []
+
+for i in range(num_to_augment):
+    # Select a random sample from the minority class
+    sample = minority_df.sample(1).iloc[0]
+
+    # Apply data augmentation to the sample
+    img_path = os.path.join(img_folder, sample['Eye ID'])
+    image = Image.open(img_path).convert("RGB")
+    augmented_image = train_transform_minority(image)  # Apply minority class augmentation
+
+    # Append the augmented data to the list
+    augmented_data.append((augmented_image, sample['Final Label']))
+
+augmented_df = pd.DataFrame(augmented_data, columns=['Eye ID', 'Final Label'])
+
+# Combine the original minority data with the augmented data
+balanced_df = pd.concat([train_df, augmented_df], ignore_index=True)
+
+train_dataset = GlaucomaDataset(dataframe=balanced_df, img_folder=img_folder, transform=train_transform, extra_features=None)
 
 train_loader = DataLoader(train_dataset, batch_size=34, shuffle=True, num_workers=8, pin_memory=True) 
 

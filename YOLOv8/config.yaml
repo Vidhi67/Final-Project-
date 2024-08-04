@@ -1,0 +1,6 @@
+path:  /home/patelvs1/home/patelvs1/final project (JustRAIGS)/YOLOv8/data
+train: images/train 
+val: images/val  
+
+nc: 1
+names: ['Optic Disc']

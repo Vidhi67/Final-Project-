@@ -174,7 +174,8 @@ def process_images(dataset, model, base_path_img, save_path, size=(518, 518)):
 
 def main():
     # Initialize YOLO model
-    model_path = '../YOLOv8/runs/segment/train12/weights/last.pt'
+    # model_path = '../YOLOv8/runs/segment/train12/weights/last.pt'
+    model_path = '../YOLOv8/yolov8x-seg.pt'
     model = YOLO(model_path)
 
     file_path_img = './preprocessed_img/'
